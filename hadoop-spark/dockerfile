@@ -1,0 +1,72 @@
+FROM ubuntu:18.04
+
+RUN apt update && \
+    apt install python3-distutils -y && \
+    apt install vim -y && \
+    apt install wget -y && \
+    apt install curl -y && \
+    apt install openjdk-8-jdk -y && \
+    apt install openssh-server openssh-client -y
+
+RUN curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && \
+    python3 get-pip.py && \
+    rm get-pip.py && \
+    pip install redis pandas
+
+ENV HADOOP_VERSION=hadoop-3.3.4
+
+RUN mkdir /hadoop_home /hadoop_home/namenode_home /hadoop_home/datanode_home /hadoop_home/temp && \
+    cd /hadoop_home && \
+    wget http://mirrors.sonic.net/apache/hadoop/common/${HADOOP_VERSION}/${HADOOP_VERSION}.tar.gz && \
+    tar xzvf ${HADOOP_VERSION}.tar.gz && \
+    rm ${HADOOP_VERSION}.tar.gz
+
+ENV HADOOP_HOME=/hadoop_home/${HADOOP_VERSION}
+
+RUN echo "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64" >> ${HADOOP_HOME}/etc/hadoop/hadoop-env.sh
+
+ENV HADOOP_HOME=${HADOOP_HOME} \
+    HADOOP_CONFIG_HOME=${HADOOP_HOME}/etc/hadoop \
+    HDFS_NAMENODE_USER=root \
+    HDFS_SECONDARYNAMENODE_USER=root \
+    HDFS_DATANODE_USER=root \
+    YARN_RESOURCEMANAGER_USER=root \
+    YARN_NODEMANAGER_USER=root
+
+# Set Pseudo-Distributed Mode
+COPY ./etc/hadoop/core-site.xml ${HADOOP_HOME}/etc/hadoop
+COPY ./etc/hadoop/hdfs-site.xml ${HADOOP_HOME}/etc/hadoop
+COPY ./etc/hadoop/mapred-site.xml ${HADOOP_HOME}/etc/hadoop
+COPY ./etc/hadoop/yarn-site.xml ${HADOOP_HOME}/etc/hadoop
+COPY ./start.sh /
+COPY ./stop.sh /
+COPY ./gen_ssh_key.sh /
+
+ENV PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
+RUN ${HADOOP_HOME}/bin/hadoop namenode -format
+
+# install Spark
+ENV SPARK_VERSION spark-3.3.1
+ENV SPARK_HOME /spark
+
+RUN cd / && \
+    wget https://dlcdn.apache.org/spark/${SPARK_VERSION}/${SPARK_VERSION}-bin-hadoop3.tgz && \
+    tar xzvf ${SPARK_VERSION}-bin-hadoop3.tgz && \
+    rm ${SPARK_VERSION}-bin-hadoop3.tgz && \
+    mv /${SPARK_VERSION}-bin-hadoop3 /spark && \
+    cd spark
+
+COPY ./spark/logs_redis_to_hdfs.py ${SPARK_HOME}
+RUN cp ${SPARK_HOME}/conf/spark-env.sh.template ${SPARK_HOME}/conf/spark-env.sh && \
+    echo "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64" >> ${SPARK_HOME}/conf/spark-env.sh && \
+    echo "export HADOOP_CONFIG_DIR=$HADOOP_HOME/etc/hadoop" >> ${SPARK_HOME}/conf/spark-env.sh && \
+    echo "export YARN_CONF_DIR=$HADOOP_HOME/etc/hadoop" >> ${SPARK_HOME}/conf/spark-env.sh && \
+    echo "export HADOOP_HOME=$HADOOP_HOME" >> ${SPARK_HOME}/conf/spark-env.sh && \
+    chmod +x /start.sh /stop.sh /gen_ssh_key.sh && \
+    ./gen_ssh_key.sh
+
+# port
+EXPOSE 9870:9870
+EXPOSE 9864:9864
+EXPOSE 8088:8088
+EXPOSE 4040:4040

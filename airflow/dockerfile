@@ -1,0 +1,22 @@
+FROM ubuntu:18.04
+
+RUN apt update && \
+    apt install python3-distutils -y && \
+    apt install openssh-client -y && \
+    apt install vim -y && \
+    apt install curl -y
+
+RUN curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && \
+    python3 get-pip.py && \
+    rm get-pip.py && \
+    pip install 'apache-airflow' 'apache-airflow[ssh]' && \
+    mkdir -p /opt/airflow
+
+ENV AIRFLOW_HOME /opt/airflow
+
+RUN airflow db init
+
+ADD ./dags/entrypoint.sh /opt/airflow
+RUN chmod +x /opt/airflow/entrypoint.sh
+
+CMD ["/opt/airflow/entrypoint.sh"]

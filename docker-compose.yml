@@ -1,0 +1,68 @@
+version: '3'
+services:
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "airflow"]
+      interval: 5s
+      retries: 5
+    restart: always
+    networks:
+      - default
+  
+  notebook:
+    build: ./jupyter
+    ports:
+      - 8888:8888
+    volumes:
+      - ./jupyter/notebook:/root/notebook:rw
+  
+  redis:
+    image: redis:latest
+    restart: always
+    ports:
+      - 6379:6379
+    networks:
+      - default
+
+  airflow:
+    build: ./airflow
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags:rw
+      - ./.ssh:/root/.ssh:ro
+    ports:
+      - 8080:8080
+  
+  hadoop-spark:
+    build: ./hadoop-spark
+    restart: always
+    command: tail -f /dev/null
+    ports:
+      - 9870:9870
+      - 9864:9864
+      - 8088:8088
+      - 4040:4040
+    networks:
+      - default
+    volumes:
+      - ./.ssh:/root/.ssh:rw
+  
+  logstash:
+    build: ./logstash
+    restart: always
+    ports:
+      - 5044:5044
+    networks:
+      - default
+
+  producer:
+    build: ./producer
+    restart: always
+    networks:
+      - default
+    depends_on:
+      - logstash

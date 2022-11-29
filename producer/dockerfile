@@ -1,0 +1,32 @@
+FROM ubuntu:18.04
+
+RUN apt update && \
+    apt install curl -y && \
+    apt install wget -y && \
+    apt install python3.8 -y && \
+    apt install python3-distutils -y
+
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python3.8 get-pip.py && \
+    rm get-pip.py
+
+ADD ./constant.py /root
+ADD ./producer.py /root
+
+ENV FILEBEAT_VERSION filebeat-8.5.1
+
+RUN wget https://artifacts.elastic.co/downloads/beats/filebeat/${FILEBEAT_VERSION}-linux-x86_64.tar.gz && \
+    tar xzvf ${FILEBEAT_VERSION}-linux-x86_64.tar.gz && \
+    mv ${FILEBEAT_VERSION}-linux-x86_64 filebeat && \
+    rm ${FILEBEAT_VERSION}-linux-x86_64.tar.gz && \
+    cd filebeat
+
+ADD filebeat.yml /filebeat
+ADD entrypoint.sh /
+
+RUN mkdir -p /var/log/httpd/access_log && \
+    chmod +x entrypoint.sh
+
+EXPOSE 5043:5043
+
+CMD [ "./entrypoint.sh" ]

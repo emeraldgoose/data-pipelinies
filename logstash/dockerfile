@@ -1,0 +1,21 @@
+FROM ubuntu:18.04
+
+RUN apt update && \
+    apt install wget -y && \
+    apt install vim -y
+
+ENV LOGSTASH_VERSION logstash-8.5.1
+RUN wget https://artifacts.elastic.co/downloads/logstash/${LOGSTASH_VERSION}-linux-x86_64.tar.gz && \
+    tar xzvf ${LOGSTASH_VERSION}-linux-x86_64.tar.gz && \
+    mv ${LOGSTASH_VERSION} logstash && \
+    rm ${LOGSTASH_VERSION}-linux-x86_64.tar.gz && \
+    cd logstash && \
+    mkdir pipeline
+
+COPY ./logstash.conf /logstash/pipeline
+COPY ./entrypoint.sh /
+
+EXPOSE 5044:5044
+RUN chmod +x /entrypoint.sh
+
+CMD ["./entrypoint.sh"]
