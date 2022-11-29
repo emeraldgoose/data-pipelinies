@@ -33,7 +33,7 @@ services:
     build: ./airflow
     volumes:
       - ./airflow/dags:/opt/airflow/dags:rw
-      - ./.ssh:/root/.ssh:ro
+      - ./ssh:/root/.ssh:ro
     ports:
       - 8080:8080
   
@@ -49,7 +49,7 @@ services:
     networks:
       - default
     volumes:
-      - ./.ssh:/root/.ssh:rw
+      - ./ssh:/root/.ssh:rw
   
   logstash:
     build: ./logstash
