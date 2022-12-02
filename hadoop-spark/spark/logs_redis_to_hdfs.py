@@ -17,7 +17,6 @@ def get_logs_from_redis(key: Any):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     start_date = parser.add_argument('--start_date', type=str, required=True)
-    # interval = parser.add_argument('--interval', type=str, default='day', help='`minute` or `hour` or `day`')
     args = parser.parse_args()
 
     start_date = datetime.datetime.strptime(args.start_date, '%Y-%m-%d')
@@ -26,5 +25,5 @@ if __name__ == "__main__":
 
     spark = SparkSession.builder.appName('Warehouse').getOrCreate()
     df = spark.createDataFrame(data)
-    df.write.parquet(f'hdfs://localhost:9000/warehouse/{key}.parquet',mode='append')
+    df.write.parquet(f'hdfs://hadoop-spark:9000/warehouse/{key}.parquet',mode='append')
     spark.stop()

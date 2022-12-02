@@ -23,7 +23,7 @@
 	</property>
 	<property>
 		<name>fs.default.name</name>
-		<value>hdfs://localhost:9000</value>
+		<value>hdfs://hadoop-spark:9000</value>
 		<final>true</final>
 	</property>
   <property>

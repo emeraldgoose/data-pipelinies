@@ -43,7 +43,9 @@ COPY ./stop.sh /
 COPY ./gen_ssh_key.sh /
 
 ENV PATH=$PATH:$HADOOP_HOME/bin:$HADOOP_HOME/sbin
-RUN ${HADOOP_HOME}/bin/hadoop namenode -format
+RUN chmod +x /start.sh /stop.sh /gen_ssh_key.sh && \
+    ${HADOOP_HOME}/bin/hadoop namenode -format && \
+    ./gen_ssh_key.sh
 
 # install Spark
 ENV SPARK_VERSION spark-3.3.1
@@ -51,22 +53,24 @@ ENV SPARK_HOME /spark
 
 RUN cd / && \
     wget https://dlcdn.apache.org/spark/${SPARK_VERSION}/${SPARK_VERSION}-bin-hadoop3.tgz && \
+    wget https://jdbc.postgresql.org/download/postgresql-42.5.1.jar && \
     tar xzvf ${SPARK_VERSION}-bin-hadoop3.tgz && \
     rm ${SPARK_VERSION}-bin-hadoop3.tgz && \
     mv /${SPARK_VERSION}-bin-hadoop3 /spark && \
     cd spark
 
 COPY ./spark/logs_redis_to_hdfs.py ${SPARK_HOME}
+COPY ./spark/logs_hdfs_to_rdb.py ${SPARK_HOME}
 RUN cp ${SPARK_HOME}/conf/spark-env.sh.template ${SPARK_HOME}/conf/spark-env.sh && \
     echo "export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64" >> ${SPARK_HOME}/conf/spark-env.sh && \
     echo "export HADOOP_CONFIG_DIR=$HADOOP_HOME/etc/hadoop" >> ${SPARK_HOME}/conf/spark-env.sh && \
     echo "export YARN_CONF_DIR=$HADOOP_HOME/etc/hadoop" >> ${SPARK_HOME}/conf/spark-env.sh && \
-    echo "export HADOOP_HOME=$HADOOP_HOME" >> ${SPARK_HOME}/conf/spark-env.sh && \
-    chmod +x /start.sh /stop.sh /gen_ssh_key.sh && \
-    ./gen_ssh_key.sh
+    echo "export HADOOP_HOME=$HADOOP_HOME" >> ${SPARK_HOME}/conf/spark-env.sh
 
 # port
 EXPOSE 9870:9870
 EXPOSE 9864:9864
 EXPOSE 8088:8088
 EXPOSE 4040:4040
+
+CMD ["./start.sh"]

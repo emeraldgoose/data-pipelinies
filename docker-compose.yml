@@ -3,14 +3,12 @@ services:
   postgres:
     image: postgres:13
     environment:
-      POSTGRES_USER: airflow
-      POSTGRES_PASSWORD: airflow
-      POSTGRES_DB: airflow
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "airflow"]
-      interval: 5s
-      retries: 5
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: mart
     restart: always
+    ports:
+      - 5432:5432
     networks:
       - default
   
@@ -20,6 +18,8 @@ services:
       - 8888:8888
     volumes:
       - ./jupyter/notebook:/root/notebook:rw
+    networks:
+      - default
   
   redis:
     image: redis:latest
@@ -40,12 +40,12 @@ services:
   hadoop-spark:
     build: ./hadoop-spark
     restart: always
-    command: tail -f /dev/null
     ports:
       - 9870:9870
       - 9864:9864
       - 8088:8088
       - 4040:4040
+      - 9000:9000
     networks:
       - default
     volumes:
@@ -66,3 +66,8 @@ services:
       - default
     depends_on:
       - logstash
+
+networks:
+  default:
+    name: net
+    driver: bridge

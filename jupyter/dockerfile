@@ -2,12 +2,14 @@ FROM ubuntu:18.04
 
 RUN apt update && \
     apt install python3-distutils -y && \
-    apt install curl -y
+    apt install curl -y && \
+    apt install wget -y && \
+    apt install openjdk-8-jdk -y
 
 RUN curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && \
     python3 get-pip.py && \
     rm get-pip.py && \
-    pip install notebook
+    pip install notebook psycopg2-binary sqlalchemy pyspark pandas
 
 RUN jupyter notebook --generate-config -y && \
     echo "c = get_config()" >> /root/.jupyter/jupyter_notebook_config.py && \
@@ -16,7 +18,6 @@ RUN jupyter notebook --generate-config -y && \
     echo "c.NotebookApp.password_required = False" >> /root/.jupyter/jupyter_notebook_config.py && \
     echo "c.NotebookApp.port = 8888" >> /root/.jupyter/jupyter_notebook_config.py && \
     mkdir -p /root/notebook
-
 
 EXPOSE 8888:8888
 

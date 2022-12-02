@@ -27,6 +27,4 @@ ADD entrypoint.sh /
 RUN mkdir -p /var/log/httpd/access_log && \
     chmod +x entrypoint.sh
 
-EXPOSE 5043:5043
-
 CMD [ "./entrypoint.sh" ]

@@ -3,14 +3,17 @@ FROM ubuntu:18.04
 RUN apt update && \
     apt install python3-distutils -y && \
     apt install openssh-client -y && \
+    apt install openjdk-8-jdk -y && \
     apt install vim -y && \
-    apt install curl -y
+    apt install curl -y && \
+    apt install wget -y
 
 RUN curl https://bootstrap.pypa.io/pip/3.6/get-pip.py -o get-pip.py && \
     python3 get-pip.py && \
     rm get-pip.py && \
-    pip install 'apache-airflow' 'apache-airflow[ssh]' && \
-    mkdir -p /opt/airflow
+    pip install 'apache-airflow' 'apache-airflow[ssh]' pyspark pandas pyarrow psycopg2-binary && \
+    mkdir -p /opt/airflow && \
+    wget https://jdbc.postgresql.org/download/postgresql-42.5.1.jar
 
 ENV AIRFLOW_HOME /opt/airflow
 
