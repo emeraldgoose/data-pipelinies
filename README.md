@@ -1,9 +1,19 @@
 # data-pipelines
-- 로그 수집부터 시각화 도구까지 이어지는 전체 파이프라인을 구성해보는 개인 프로젝트입니다.
 
+## About
+로그 수집부터 시각화 도구까지 이어지는 전체 파이프라인을 구성해보는 개인 프로젝트입니다.
 ![스크린샷 2022-12-02 오후 4 30 59](https://user-images.githubusercontent.com/50171632/205239615-69152b4b-112b-492e-ae90-ef752b436f6b.png)
+가상으로 생성된 로그를 Elasticsearch와 Postgresql에 적재하는 파이프라인을 구축했습니다. 각 데이터 프레임워크들은 Dockerfile을 작성했고 Docker-compose로 관리할 수 있습니다.
 
-ELK 스택은 로그를 수집하고 실시간으로 대시보드를 통해 확인할 수 있는 파이프라인에 사용했고 HDFS와 스파크는 배치 처리를 위한 파이프라인으로 구성했습니다.  
-Elasticsearch와 Kibana는 docker-compose로 구성하지 않았습니다. 전체 파이프라인이 너무 커져 엘라스틱서치와 키바나는 [ide.goorm.io](https://ide.goorm.io)에 설치하여 사용했습니다.  
+Python 코드로 생성되어 `/var/log/httpd/access_log/*.log`에 기록되는 로그는 다음과 같습니다.
+```
+206.176.215.237 - - [02/Dec/2022:18:57:34 +0900] "GET /api/items HTTP/1.1" 200 3456 477 "https://www.dummmmmy.com" "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Mobile/15E148 Safari/604.1"
+```
 
-- [https://emeraldgoose.github.io/data-engineer/data-pipeline/](https://emeraldgoose.github.io/data-engineer/data-pipeline/)
+## RUN
+```
+docker compose -f "docker-compose.yml" up -d --build 
+```
+
+### Elasticsearch + Kibana
+Elasticsearch와 Kibana는 Goorm IDE에 설치하여 사용했지만 무료계정의 경우 항상 켜두기 제공이 종료되어 사용할 수 없습니다.
